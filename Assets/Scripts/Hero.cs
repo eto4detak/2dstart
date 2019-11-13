@@ -5,39 +5,54 @@ using UnityEngine;
 
 public class Hero : Unit
 {
-    public float speed = 10.0f;
-    //new private Rigidbody2D rigidbody;
-    private Rigidbody2D mainHero;
-    private Animator animator;
-    private SpriteRenderer sprite;
-    private float jumpForce = 20.0f;
-    private int lives = 10;
-
-    private bool isGrounded = false;
     private Bullet bullet;
-    private CharState State
+    
+    protected override void Start()
     {
-        get { return (CharState)animator.GetInteger("State"); }
-        set { animator.SetInteger("State", (int)value); }
-    }
+        base.Start();
 
-    void Start()
-    {
-        mainHero = GetComponent<Rigidbody2D>();
+        speed = 10f;
+        jumpForce = 70f;
+        directionRight = 1;
+        SizeX = 1.48f;
+        SizeY = 1f;
+
+        rigibody = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         sprite = GetComponentInChildren<SpriteRenderer>();
 
         bullet = Resources.Load<Bullet>("Bullet");
+        SetInfo("text text");
+
     }
 
-    void Update()
+    protected override void Update()
     {
-        State = CharState.Idle;
+        base.Update();
+
+       // State = CharState.Idle;
 
         if (Input.GetButtonDown("Fire1")) Shoot();
-        if (Input.GetButton("Horizontal")) Run();
+        if (Input.GetButton("Horizontal")) Move(transform.right * Input.GetAxis("Horizontal"));
         if (isGrounded && Input.GetButtonDown("Jump")) Jump();
 
+    }
+    void OnTriggerEnter2D(Collider2D collider)
+    {
+        Unit unit = collider.GetComponent<Unit>();
+        if (unit)
+        {
+            ReceiveDamage();
+        }
+    }
+
+
+    protected override void Move(Vector3 direction)
+    {
+        //State = CharState.Run;
+        //Vector3 direction = transform.right * Input.GetAxis("Horizontal");
+        transform.position = Vector3.MoveTowards(transform.position, transform.position + direction, speed * Time.deltaTime);
+        Flip(direction);
     }
 
     //method base class 
@@ -47,18 +62,24 @@ public class Hero : Unit
     }
 
 
-    private void Run()
+    private void OnCollisionStay2D(Collision2D other)
     {
-        State = CharState.Run;
-        Vector3 direction = transform.right * Input.GetAxis("Horizontal");
-        transform.position = Vector3.MoveTowards(transform.position, transform.position + direction, speed * Time.deltaTime);
-        sprite.flipX = direction.x > 0.0f;
-        //float moveX = Input.GetAxis("Horizontal");
-        //mainHero.MovePosition(mainHero.position + Vector2.right * moveX * speed * Time.deltaTime);
+        if (other.collider.tag != "Weapon") return;
+        Unit atackingUnit = other.gameObject.GetComponentInParent<Unit>();
+        if (atackingUnit != null)
+        {
+            ReceiveDamage();
+        }
     }
+
+    public void SetInfo(string text)
+    {
+        
+    }
+
     private void Jump()
     {
-        mainHero.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
+        rigibody.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
     }
     private void Shoot()
     {
@@ -67,7 +88,7 @@ public class Hero : Unit
         Bullet newBullet = Instantiate(bullet, position, bullet.transform.rotation) as Bullet;
 
         newBullet.Parent = gameObject;
-        newBullet.Direction = newBullet.transform.right * (sprite.flipX ? 1.0f : -1.0f);
+        newBullet.Direction = newBullet.transform.right *(sprite.flipX ? -1.0f : 1.0f) ;
     }
     private void CheckGround()
     {
@@ -75,32 +96,18 @@ public class Hero : Unit
         isGrounded = colliders.Length > 1;
     }
 
-
     public override void ReceiveDamage()
     {
-        lives--;
-        mainHero.velocity = Vector3.zero;
-        mainHero.AddForce(transform.up * 15.0f, ForceMode2D.Impulse);
-        Debug.Log(lives);
-    }
+        if (godMode) return;
+        godMode = true;
 
-    void OnTriggerEnter2D(Collider2D collider)
-    {
-        Unit unit = collider.GetComponent<Unit>();
-
-        if (unit)
-        {
-            ReceiveDamage();
-        }
+        health--;
+        Debug.Log(health);
+        StartCoroutine("Blinking");
+        Invoke("OffGodMode", damageTimer);
+        Invoke("StopBlinking", damageTimer);
+        GameManager.messageConvas.Message(this , "-1", 2f);
     }
 
 
-
-}
-
-
-public enum CharState
-{
-    Idle,
-    Run
 }

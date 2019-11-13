@@ -10,8 +10,8 @@ public class DieSpece : MonoBehaviour
     {
         if (other.tag == "Player")
         {
-            Debug.Log("Player");
-            other.transform.parent.position = respawn.transform.position;
+            //Debug.Log("Player");
+            //other.transform.parent.position = respawn.transform.position;
         }
     }
 }

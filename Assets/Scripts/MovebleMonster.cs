@@ -1,14 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
 public class MovebleMonster : Monster
 {
-    [SerializeField]
-    private float speed = 2.0f;
-
-    private Vector3 direction;
 
     private Bullet bullet;
 
@@ -16,37 +13,33 @@ public class MovebleMonster : Monster
     {
         bullet = Resources.Load<Bullet>("Bullet");
     }
-
-    protected override void Update()
-    {
-        Move();
-    }
     protected override void Start()
     {
+        base.Start();
         direction = transform.right;
     }
 
-    protected override void OnTriggerEnter2D(Collider2D collider)
+    protected override void Update()
     {
-        Unit unit = collider.GetComponent<Unit>();
+        base.Update();
+    }
+
+
+    protected override void OnTriggerEnter2D(Collider2D other)
+    {
+        Unit unit = other.GetComponent<Unit>();
 
         if (unit && unit is Hero)
         {
 
         }
 
-    }
-
-    private void Move()
-    {
-        Collider2D[] collider = Physics2D.OverlapCircleAll(transform.position + transform.up * 0.5f + transform.right * direction.x * 0.5f, 0.2f);
-        if (collider.Length > 0) 
+        Bullet bullet = other.GetComponent<Bullet>();
+        if (bullet)
         {
-            direction *= 1.0f;
+            ReceiveDamage();
         }
 
-        transform.position = Vector3.MoveTowards(transform.position, transform.position + direction, speed * Time.deltaTime);
     }
-
 
 }

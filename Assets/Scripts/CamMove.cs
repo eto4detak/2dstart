@@ -18,6 +18,7 @@ public class CamMove : MonoBehaviour
         //transform.position = new Vector3(player.transform.position.x, player.transform.position.y, -10f);
         Vector3 position = target.position;
         position.z = -10;
+        position.y =  0;
         transform.position = Vector3.Lerp(transform.position, position, speed);
     }
 }
