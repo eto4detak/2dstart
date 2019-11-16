@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
-    protected int health = 10;
+    protected int health = 3;
+    public int maxHealth = 3;
     internal float speed = 3.0f;
     protected float agressionRadius = 1.0f;
     protected float attackRadius = 1.0f;
@@ -14,8 +15,16 @@ public class Unit : MonoBehaviour
     internal float jumpForce = 10f;
     internal bool isGrounded = false;
     protected float directionRight = 1f;
+    /// <summary>
+    /// for gameobject
+    /// </summary>
+    protected int layer;
+    /// <summary>
+    /// for gameobject
+    /// </summary>
+    protected Dictionary<Transform, int> childLayers = new Dictionary<Transform, int>();
 
-    protected float damageTimer = 2f;
+    public float damageTimer = 2f;
     internal bool godMode = false;
     protected Unit target;
 
@@ -24,12 +33,8 @@ public class Unit : MonoBehaviour
     internal Animator animator;
     internal MessageConvas messageManager;
 
-    
-    //protected CharState State
-    //{
-    //    get { return (CharState)animator.GetInteger("State"); }
-    //    set { animator.SetInteger("State", (int)value); }
-    //}
+    //time
+    protected float replenishmentTime = 1f;
 
     protected virtual void Start()
     {
@@ -37,7 +42,7 @@ public class Unit : MonoBehaviour
         animator = GetComponent<Animator>();
         sprite = GetComponentInChildren<SpriteRenderer>();
         messageManager = GetComponentInChildren<MessageConvas>();
-
+        SaveStartLayers();
         if (rigibody != null)
         {
             jumpForce = rigibody.mass * 3 ;
@@ -56,26 +61,16 @@ public class Unit : MonoBehaviour
     }
 
 
-    public virtual void ReceiveDamage()
+    private void SaveStartLayers()
     {
-        if (godMode) return;
-        godMode = true;
-        health--;
-        StartCoroutine("Blinking");
-        Invoke("OffGodMode", damageTimer);
-        Invoke("StopBlinking", damageTimer);
-
-        Debug.Log("-1");
-        GameManager.messageConvas.Message(this, "-1");
-        if(messageManager != null)
+        layer = gameObject.layer;
+        foreach (var child in GetComponentsInChildren<Transform>())
         {
-            messageManager.Message(this, "-1", 0.75f);
+            childLayers.Add(child, child.gameObject.layer);
         }
+        
     }
-    protected void OffGodMode()
-    {
-        godMode = false;
-    }
+
 
     protected virtual void Die()
     {
@@ -129,8 +124,34 @@ public class Unit : MonoBehaviour
 
         rigibody.AddForce(force, ForceMode2D.Impulse);
     }
+    public virtual void ReceiveDamage()
+    {
+        if (godMode) return;
+        godMode = true;
+        health--;
+        StartCoroutine("Blinking");
+        OffGodMode(damageTimer);
+        StopBlinking(damageTimer);
 
+        GameManager.messageConvas.Message(this, "-1");
+        if (messageManager != null)
+        {
+            messageManager.Message(this, "-1 = " + health, 0.6f);
+        }
+    }
 
+    public void OffGodMode(float damageTimer = 1f)
+    {
+        Invoke("OffGodMode", damageTimer);
+    }
+    private void OffGodMode()
+    {
+        godMode = false;
+    }
+    public void StopBlinking(float damageTimer = 1f)
+    {
+        Invoke("StopBlinking", damageTimer);
+    }
     private void StopBlinking()
     {
         StopCoroutine("Blinking");
@@ -159,6 +180,25 @@ public class Unit : MonoBehaviour
             }
         }
     }
+
+
+
+    protected virtual void ReplenishHealth()
+    {
+        health++;
+        GameManager.messageConvas.Message(this, "+1", 0.6f);
+    }
+
+
+    protected void SetDefaultLayers()
+    {
+        gameObject.layer = layer;
+        foreach (var child in childLayers)
+        {
+            child.Key.gameObject.layer = child.Value;
+        }
+    }
+
 }
 
 

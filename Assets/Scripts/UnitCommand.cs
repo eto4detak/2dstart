@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UnitCommand : MonoBehaviour
+public class UnitCommand
 {
     protected Monster monster;
     public UnitCommand(Monster paramUnit)
@@ -132,33 +132,44 @@ public class RunAttackCommand : UnitCommand
 
 public class TiredCommand : UnitCommand
 {
-    public Unit target;
     public float commandTime = 5f;
-    public TiredCommand(Monster self, Unit newPosition)
+    public bool isActivate = false;
+    public TiredCommand(Monster self)
     {
         monster = self;
-        target = newPosition;
     }
     public override void DoCommand()
     {
-        Vector3 direction = target.transform.position - monster.transform.position;
-        monster.Flip(direction);
-
-        target.godMode = true;
-        monster.animator.SetFloat("speed", 0f);
-        monster.animator.SetBool("Attacking", false);
-        target.animator.SetBool("Tired", true);
+        if (!isActivate)
+        {
+            isActivate = true;
+            monster.godMode = true;
+            monster.gameObject.layer = 13;
+            var allChildComponents = monster.GetComponentsInChildren<Transform>();
+            foreach (var child in allChildComponents)
+            {
+                child.gameObject.layer = 13;
+            }
+            monster.animator.SetFloat("speed", 0f);
+            monster.animator.SetBool("Attacking", false);
+            monster.animator.SetTrigger("Tired");
+            monster.OffGodMode(4f);
+            monster.ReplenishHealth(4);
+        }
     }
 
-    private void Tired()
+
+    private void Method123()
     {
-        Invoke("target.OffGodMode", commandTime);
-        Invoke("OffAnimationTired", commandTime);
-
+        //code
     }
+
+
     protected void OffAnimationTired()
     {
-        target.animator.SetBool("Tired", false);
+        monster.animator.SetBool("Tired", false);
     }
+
+    
 
 }

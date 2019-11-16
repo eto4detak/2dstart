@@ -9,13 +9,22 @@ public class Monster : Unit
     internal List<Vector3> oldPosiztions =new List<Vector3>();
     internal float oldPositionsTime = 0f;
     private float maxOldPositionsTime = 2f;
-    protected UnitCommand command;
+    private UnitCommand command;
+    private bool isTired = false;
 
+    protected UnitCommand Command { get => command;
+        set
+        {
+            command = value;
+
+        }
+    }
+    public bool IsTired { get => isTired; private set => isTired = value; }
 
     protected virtual void Awake() { }
     protected override void Start() {
         base.Start();
-        command = new IdleCommand(this);
+        Command = new IdleCommand(this);
 
     }
     protected override void Update() {
@@ -23,8 +32,12 @@ public class Monster : Unit
 
         UpdatePositionStatus();
         SavePosition();
-        UpdateCommand();
-        command.DoCommand();
+        
+        if (!IsTired)
+        {
+           UpdateCommand();
+           Command.DoCommand();
+        }
 
     }
 
@@ -51,7 +64,12 @@ public class Monster : Unit
     }
 
 
-
+    protected void SetHealth(int newHealth )
+    {
+        health = newHealth;
+        command = new TiredCommand(this);
+        IsTired = true;
+    }
     private void SavePosition()
     {
         if (oldPositionsTime > maxOldPositionsTime)
@@ -97,32 +115,51 @@ public class Monster : Unit
         {
             Debug.Log("new command= " + newCommand);
            // GameManager.messageConvas.Message(this, "new command= " + newCommand);
-            command = newCommand;
+            Command = newCommand;
             return;
         }
     }
 
     private UnitCommand CheckRadiusAttack()
     {
+        if (IsTired || health <= 0)
+        {
+            IsTired = true;
+           return new TiredCommand(this);
+        }
         float distance = Mathf.Abs(GameManager.hero.transform.position.x - transform.position.x);
 
-        if (distance < attackRadius && !(command is AttackCommand) )
+        if (distance < attackRadius && !(Command is AttackCommand) )
         {
             return new AttackCommand(this);
         }
-        else if(distance < attackRadius *3 && !(command is RunAttackCommand))
+        else if(distance < attackRadius *3 && !(Command is RunAttackCommand))
         {
             return new RunAttackCommand(this, GameManager.hero);
         }
-        else if(!(command is MoveCommand))
+        else if(!(Command is MoveCommand))
         {
             return new MoveCommand(this, GameManager.hero);
         }
         return null;
     }
 
+    public void ReplenishHealth(int countHealth)
+    {
+        StartCoroutine(AddHealth(countHealth));
+    }
 
-
-
+    IEnumerator AddHealth(int countHealth)
+    {
+        for (int i = 0; i < countHealth; i++)
+        {
+            ReplenishHealth();
+            yield return new WaitForSeconds(replenishmentTime);
+        }
+        IsTired = false;
+        animator.SetTrigger("startactive");
+        SetDefaultLayers();
+        StopCoroutine("AddHealth");
+    }
 
 }

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7833622005431967451}
   - component: {fileID: 7833622005431967449}
   - component: {fileID: 8285671550425981985}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Hero
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -88,6 +88,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73bb0612ab595234d889b21f03a4ba91, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHealth: 10
+  damageTimer: 2
 --- !u!61 &8285671550425981985
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -125,6 +127,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: InfoBarPivot
+      objectReference: {fileID: 0}
+    - target: {fileID: 1608867701676064097, guid: 684ba0df5073db24e8fb925a1b2a2ee2,
+        type: 3}
+      propertyPath: m_Layer
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6525908782474176383, guid: 684ba0df5073db24e8fb925a1b2a2ee2,
         type: 3}
