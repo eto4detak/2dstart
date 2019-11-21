@@ -10,7 +10,7 @@ public class Hero : Unit
     protected override void Start()
     {
         base.Start();
-
+        GameManager.allUnit.Add(this);
         speed = 10f;
         jumpForce = 70f;
         directionRight = 1;
@@ -34,7 +34,8 @@ public class Hero : Unit
 
         if (Input.GetButtonDown("Fire1")) Shoot();
         if (Input.GetButton("Horizontal")) Move(transform.right * Input.GetAxis("Horizontal"));
-        if (isGrounded && Input.GetButtonDown("Jump")) Jump();
+        if (isGrounded && Input.GetButtonDown("Jump") && !Input.GetKey(KeyCode.S)) Jump();
+
 
     }
     void OnTriggerEnter2D(Collider2D collider)
@@ -42,7 +43,7 @@ public class Hero : Unit
         Unit unit = collider.GetComponent<Unit>();
         if (unit)
         {
-            ReceiveDamage();
+            ReceiveDamage(collider.gameObject);
         }
     }
 
@@ -64,13 +65,24 @@ public class Hero : Unit
 
     private void OnCollisionStay2D(Collision2D other)
     {
-        if (other.collider.tag != "Weapon") return;
-        Unit atackingUnit = other.gameObject.GetComponentInParent<Unit>();
-        if (atackingUnit != null)
+
+        if (Input.GetKey(KeyCode.Space) && Input.GetKey(KeyCode.S))
         {
-            ReceiveDamage();
+            JumpDown(other.collider);
+            return;
         }
+        if (other.collider.tag == "Weapon")
+        {
+            Unit atackingUnit = other.gameObject.GetComponentInParent<Unit>();
+            if (atackingUnit != null)
+            {
+                ReceiveDamage(other.gameObject);
+            }
+        }
+
     }
+
+
 
     public void SetInfo(string text)
     {
@@ -86,28 +98,31 @@ public class Hero : Unit
         Vector3 position = transform.position;
         position.y += 1.0f;
         Bullet newBullet = Instantiate(bullet, position, bullet.transform.rotation) as Bullet;
-
+        bullet.gameObject.layer = commandLayer;
         newBullet.Parent = gameObject;
         newBullet.Direction = newBullet.transform.right *(sprite.flipX ? -1.0f : 1.0f) ;
     }
+
     private void CheckGround()
     {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 0.3f);
         isGrounded = colliders.Length > 1;
     }
 
-    public override void ReceiveDamage()
-    {
-        if (godMode) return;
-        godMode = true;
+    //public override void ReceiveDamage(GameObject enemy)
+    //{
+    //    if (godMode) return;
+    //    godMode = true;
 
-        health--;
-        Debug.Log(health);
-        StartCoroutine("Blinking");
-        Invoke("OffGodMode", damageTimer);
-        Invoke("StopBlinking", damageTimer);
-        GameManager.messageConvas.Message(this , "-1", 2f);
-    }
+    //    health--;
+    //    Vector3 newv = transform.position - enemy.transform.position;
+    //    rigibody.AddForce(newv, ForceMode2D.Impulse);
+    //    Debug.Log(health);
+    //    StartCoroutine("Blinking");
+    //    Invoke("OffGodMode", damageTimer);
+    //    Invoke("StopBlinking", damageTimer);
+    //    GameManager.messageConvas.Message(this , "-1", 2f);
+    //}
 
 
 }

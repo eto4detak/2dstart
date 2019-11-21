@@ -9,7 +9,7 @@ public class MovebleMonster : Monster
 
     private Bullet bullet;
 
-    protected override void Awake()
+    void Awake()
     {
         bullet = Resources.Load<Bullet>("Bullet");
     }
@@ -37,7 +37,7 @@ public class MovebleMonster : Monster
         Bullet bullet = other.GetComponent<Bullet>();
         if (bullet)
         {
-            ReceiveDamage();
+            ReceiveDamage(bullet.gameObject);
         }
 
     }

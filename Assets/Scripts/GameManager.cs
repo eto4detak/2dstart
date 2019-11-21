@@ -7,6 +7,8 @@ public class GameManager : MonoBehaviour
 
    public static Hero hero;
    public static MessageConvas messageConvas;
+    public static List<Unit> allUnit = new List<Unit>();
+    
     void Start()
     {
         hero = (Hero)FindObjectOfType(typeof(Hero));

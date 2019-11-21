@@ -95,9 +95,11 @@ public class MoveCommand : UnitCommand
 }
 public class AttackCommand : UnitCommand
 {
-    public AttackCommand(Monster paramUnit)
+    public Unit target;
+    public AttackCommand(Monster paramUnit, Unit paramTarget)
     {
         monster = paramUnit;
+        target = paramTarget;
     }
     public override void DoCommand()
     {
@@ -111,12 +113,12 @@ public class RunAttackCommand : UnitCommand
     public Unit target;
     public MoveCommand moveCommand;
     public AttackCommand attackCommand;
-    public RunAttackCommand(Monster self, Unit newPosition)
+    public RunAttackCommand(Monster self, Unit paramTarget)
     {
         monster = self;
-        target = newPosition;
-        moveCommand = new MoveCommand(self, newPosition);
-        attackCommand = new AttackCommand(self);
+        target = paramTarget;
+        moveCommand = new MoveCommand(self, paramTarget);
+        attackCommand = new AttackCommand(self, paramTarget);
     }
     public override void DoCommand()
     {
@@ -157,13 +159,6 @@ public class TiredCommand : UnitCommand
             monster.ReplenishHealth(4);
         }
     }
-
-
-    private void Method123()
-    {
-        //code
-    }
-
 
     protected void OffAnimationTired()
     {
